@@ -17,6 +17,7 @@ app.get('/api/hello', async (req: Request, res: Response) => {
   if (clientIp === '::1' || clientIp === '127.0.0.1' || clientIp === '8.8.8.8') {
     // Try to get the real client IP from headers
     clientIp = req.headers['x-real-ip'] as string || req.headers['x-forwarded-for'] as string || clientIp;
+    console.log(clientIp);
   }
 
   try {
