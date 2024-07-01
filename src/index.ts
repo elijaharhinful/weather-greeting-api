@@ -6,13 +6,17 @@ const app = express();
 const port = process.env.PORT || 3000;
 const weatherApiKey = process.env.WEATHER_API_KEY;
 
+// Trust the headers set by Vercel proxy
+app.set('trust proxy', true);
+
 app.get('/api/hello', async (req: Request, res: Response) => {
   const visitorName = req.query.visitor_name as string || "Anonymous";
   let clientIp = req.ip;
 
-  // Handle local IP (localhost) case
-  if (clientIp === '::1' || clientIp === '127.0.0.1') {
-    clientIp = '8.8.8.8'; // Use a public IP for testing
+  /// Check if the IP is from localhost or Vercel's proxy
+  if (clientIp === '::1' || clientIp === '127.0.0.1' || clientIp === '8.8.8.8') {
+    // Try to get the real client IP from headers
+    clientIp = req.headers['x-real-ip'] as string || req.headers['x-forwarded-for'] as string || clientIp;
   }
 
   try {
@@ -20,7 +24,7 @@ app.get('/api/hello', async (req: Request, res: Response) => {
     const locationResponse = await axios.get(`http://ip-api.com/json/${clientIp}`);
     // console.log(locationResponse.data);
     // console.log("-----------------**************----------------");
-    const { city} = locationResponse.data;
+    const { city } = locationResponse.data;
 
     // Get weather data from WeatherAPI
     const weatherResponse = await axios.get(`http://api.weatherapi.com/v1/current.json?key=${weatherApiKey}&q=${city}`);
